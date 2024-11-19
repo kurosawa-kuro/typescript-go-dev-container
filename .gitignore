@@ -83,8 +83,8 @@ coverage.txt
 /test/
 
 # Ignore environmental configuration files
-.env
-*.env
+# .env
+# *.env
 
 # // 追記
 /yarn.lock

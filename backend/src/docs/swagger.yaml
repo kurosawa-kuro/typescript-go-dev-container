@@ -1,0 +1,26 @@
+basePath: /
+host: localhost:8000
+info:
+  contact: {}
+  description: Your API Description
+  title: Your API Title
+  version: "1.0"
+paths:
+  /ping:
+    get:
+      consumes:
+      - application/json
+      description: returns pong message
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Ping test endpoint
+      tags:
+      - ping
+swagger: "2.0"

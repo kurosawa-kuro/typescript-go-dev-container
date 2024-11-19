@@ -1,0 +1,26 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go-postgres
+{
+	"name": "Go & PostgreSQL",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// VSCode の拡張機能を追加
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"humao.rest-client"
+			]
+		}
+	},
+
+	// SSH エージェントソケットをマウント
+	"mounts": [
+		"source=/run/host-services/ssh-auth.sock,target=/run/host-services/ssh-auth.sock,type=bind"
+	],
+
+	"remoteEnv": {
+		"SSH_AUTH_SOCK": "/run/host-services/ssh-auth.sock"
+	}
+}

@@ -1,0 +1,23 @@
+@baseUrl = http://localhost:8000
+
+###################
+# Health Check
+###################
+### Ping Test
+GET {{baseUrl}}/ping
+Content-Type: application/json
+
+###################
+# Microposts API
+###################
+### Create Micropost
+POST {{baseUrl}}/microposts
+Content-Type: application/json
+
+{
+    "title": "test"
+}
+
+### Find All Microposts
+GET {{baseUrl}}/microposts
+Content-Type: application/json

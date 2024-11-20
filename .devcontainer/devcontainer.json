@@ -11,7 +11,10 @@
 		"vscode": {
 			"extensions": [
 				"humao.rest-client",
-				"golang.go"
+				"golang.go",
+				"howardzuo.vscode-favorites",
+				"eamodio.gitlens",
+				"GitHub.copilot"
 			]
 		}
 	},

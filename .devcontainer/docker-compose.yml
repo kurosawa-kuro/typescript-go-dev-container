@@ -2,6 +2,7 @@ volumes:
   postgres-data:
   pgadmin-data:
   next-node-modules:
+  postgres-test-data:
 
 services:
   app:
@@ -23,6 +24,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     env_file:
       - .env
     networks:
@@ -40,6 +42,8 @@ services:
       - "listen_addresses=*"
       - "-c"
       - "log_connections=on"
+      - "-c"
+      - "password_encryption=md5"
 
   pgadmin:
     image: dpage/pgadmin4
@@ -59,6 +63,27 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+
+  test-db:
+    container_name: test-postgres-db
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    networks:
+      - dev-network
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    command: >
+      bash -c "
+        echo \"CREATE DATABASE test_db;\" > /docker-entrypoint-initdb.d/init.sql &&
+        docker-entrypoint.sh postgres
+      "
 
 networks:
   dev-network:

@@ -11,12 +11,35 @@ import (
 )
 
 func SetupDB() *gorm.DB {
-	// 環境変数名を.envファイルに合わせる
-	host := os.Getenv("DOCKER_DATABASE_HOST")
-	user := os.Getenv("POSTGRES_USER")
-	password := os.Getenv("POSTGRES_PASSWORD")
-	dbname := os.Getenv("POSTGRES_DB")
-	port := os.Getenv("POSTGRES_PORT")
+	return SetupDBWithConfig(false)
+}
+
+func SetupTestDB() *gorm.DB {
+	return SetupDBWithConfig(true)
+}
+
+func SetupDBWithConfig(isTest bool) *gorm.DB {
+	var (
+		host     string
+		user     string
+		password string
+		dbname   string
+		port     string
+	)
+
+	if isTest {
+		host = os.Getenv("TEST_DATABASE_HOST")
+		user = os.Getenv("TEST_POSTGRES_USER")
+		password = os.Getenv("TEST_POSTGRES_PASSWORD")
+		dbname = os.Getenv("TEST_POSTGRES_DB")
+		port = os.Getenv("TEST_POSTGRES_PORT")
+	} else {
+		host = os.Getenv("DOCKER_DATABASE_HOST")
+		user = os.Getenv("POSTGRES_USER")
+		password = os.Getenv("POSTGRES_PASSWORD")
+		dbname = os.Getenv("POSTGRES_DB")
+		port = os.Getenv("POSTGRES_PORT")
+	}
 
 	// Verify that all required variables are present
 	if host == "" || user == "" || password == "" || dbname == "" {

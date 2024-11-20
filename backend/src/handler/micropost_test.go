@@ -1,76 +1,79 @@
 package handler
 
 import (
+	"backend/src/model"
+	"backend/src/test"
 	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
-
-	"backend/src/config"
-	"backend/src/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
 
-func setupTestDB() *gorm.DB {
-	// Set test environment
-	os.Setenv("GO_ENV", "test")
+func TestMicropostHandler_Create(t *testing.T) {
+	// Setup
+	db := test.SetupTestDB(t)
+	defer test.CleanupTest(t, db)
 
-	// Get database connection
-	db := config.SetupDB()
-
-	// Migrate the schema
-	db.AutoMigrate(&model.Micropost{})
-
-	return db
-}
-
-func TestCreateMicropost(t *testing.T) {
-	db := setupTestDB()
 	handler := NewMicropostHandler(db)
-
-	router := gin.Default()
+	router := gin.New()
 	router.POST("/microposts", handler.Create)
 
-	micropost := model.Micropost{Title: "Test content"}
-	body, _ := json.Marshal(micropost)
+	// Test data
+	micropost := model.Micropost{
+		Title: "Test Post",
+	}
+	jsonData, _ := json.Marshal(micropost)
 
-	req, _ := http.NewRequest("POST", "/microposts", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
-
+	// Create request
 	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/microposts", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
 	router.ServeHTTP(w, req)
 
+	// Assertions
 	assert.Equal(t, http.StatusCreated, w.Code)
 
-	var createdMicropost model.Micropost
-	json.Unmarshal(w.Body.Bytes(), &createdMicropost)
-	assert.Equal(t, micropost.Title, createdMicropost.Title)
+	var response model.Micropost
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Equal(t, micropost.Title, response.Title)
+	assert.NotZero(t, response.ID)
 }
 
-func TestFindAllMicroposts(t *testing.T) {
-	db := setupTestDB()
+func TestMicropostHandler_FindAll(t *testing.T) {
+	// Setup
+	db := test.SetupTestDB(t)
+	defer test.CleanupTest(t, db)
+
 	handler := NewMicropostHandler(db)
-
-	// Insert a test micropost
-	db.Create(&model.Micropost{Title: "Test content"})
-
-	router := gin.Default()
+	router := gin.New()
 	router.GET("/microposts", handler.FindAll)
 
-	req, _ := http.NewRequest("GET", "/microposts", nil)
+	// Create test data
+	testPosts := []model.Micropost{
+		{Title: "Test Post 1"},
+		{Title: "Test Post 2"},
+	}
+	for _, post := range testPosts {
+		db.Create(&post)
+	}
 
+	// Create request
 	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/microposts", nil)
 	router.ServeHTTP(w, req)
 
+	// Assertions
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var microposts []model.Micropost
-	json.Unmarshal(w.Body.Bytes(), &microposts)
-	assert.NotEmpty(t, microposts)
-	assert.Equal(t, "Test content", microposts[0].Title)
+	var response []model.Micropost
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err)
+	assert.Len(t, response, 2)
+	assert.Equal(t, testPosts[0].Title, response[0].Title)
+	assert.Equal(t, testPosts[1].Title, response[1].Title)
 }

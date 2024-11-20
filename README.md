@@ -80,11 +80,9 @@ docker-compose down -v
 
 
 cd .devcontainer/
-docker-compose down -v
-
-
 # Dockerの完全クリーンアップ
 docker-compose down -v
+docker volume prune -f
 docker stop $(docker ps -a -q)
 docker rm $(docker ps -a -q)
 docker system prune -a --volumes -f
@@ -107,3 +105,10 @@ DOCKER_DATABASE_HOST=db
 # pgAdmin設定
 PGADMIN_DEFAULT_EMAIL=admin@admin.com
 PGADMIN_DEFAULT_PASSWORD=admin
+
+# テストを実行
+cd ./backend/src
+go test ./handler/... ./test/... -v
+
+docker exec -it test-postgres-db psql -U postgres -c "\l"
+docker exec -it test-postgres-db psql -U postgres -c "CREATE DATABASE test_db;"

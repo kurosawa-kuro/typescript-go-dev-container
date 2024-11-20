@@ -1,6 +1,6 @@
 async function getPingData() {
   try {
-    const res = await fetch('http://backend:8000/ping', {
+    const res = await fetch('http://app:8000/ping', {
       headers: {
         'Content-Type': 'application/json',
       },

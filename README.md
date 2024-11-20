@@ -65,6 +65,10 @@ docker rmi $(docker images -q)
 docker volume rm $(docker volume ls -q)
 ================
 
+cd .devcontainer/
+docker-compose down -v
+
+
 # Dockerの完全クリーンアップ
 docker-compose down -v
 docker stop $(docker ps -a -q)
@@ -82,3 +86,23 @@ docker-compose down -v
 
 .devcontainerの構成をFrontendとBackendに合わせる
 バックエンドの正しいテスト環境作成
+
+
+
+
+
+
+
+cd .devcontainer/
+docker-compose down -v
+
+
+# Dockerの完全クリーンアップ
+docker-compose down -v
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+docker system prune -a --volumes -f
+
+# VSCode関連ファイルのクリーンアップ
+rm -rf ~/.vscode-server
+rm -rf ~/.vscode-remote-containers

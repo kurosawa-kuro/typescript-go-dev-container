@@ -12,11 +12,11 @@ import (
 
 func SetupDB() *gorm.DB {
 	// 環境変数名を.envファイルに合わせる
-	host := os.Getenv("POSTGRES_HOST")
+	host := os.Getenv("DATABASE_HOST")
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
 	dbname := os.Getenv("POSTGRES_DB")
-	port := "5432" // PostgreSQLのデフォルトポート
+	port := os.Getenv("POSTGRES_PORT")
 
 	// Verify that all required variables are present
 	if host == "" || user == "" || password == "" || dbname == "" {

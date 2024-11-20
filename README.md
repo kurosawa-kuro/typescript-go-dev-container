@@ -79,3 +79,5 @@ rm -rf ~/.vscode-remote-containers
 
 cd .devcontainer/
 docker-compose down -v
+
+.devcontainerの構成をFrontendとBackendに合わせる

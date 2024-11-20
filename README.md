@@ -1,6 +1,21 @@
 # react-ts-go-docker
 React TypeScript Go in Docker 
 
+
+
+
+
+make dev-backend
+
+
+
+
+
+
+
+
+
+
 docker-compose down
 
 

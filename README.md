@@ -81,13 +81,26 @@ docker-compose down -v
 
 cd .devcontainer/
 # Dockerの完全クリーンアップ
+# 1. 実行中のコンテナを停止
 docker-compose down -v
-docker volume prune -f
 docker stop $(docker ps -a -q)
+
+# 2. 全てのコンテナを削除
 docker rm $(docker ps -a -q)
+
+# 3. 全てのイメージを削除
+docker rmi $(docker images -q) -f
+
+# 4. 全てのボリュームを削除
+docker volume rm $(docker volume ls -q)
+
+# 5. 全てのネットワークを削除
+docker network prune -f
+
+# 6. 未使用のシステムリソースを削除（キャッシュ含む）
 docker system prune -a --volumes -f
 
-# VSCode関連ファイルのクリーンアップ
+# 7. Dev Container関連のVSCodeキャッシュを削除
 rm -rf ~/.vscode-server
 rm -rf ~/.vscode-remote-containers
 
@@ -112,3 +125,5 @@ go test ./handler/... ./test/... -v
 
 docker exec -it test-postgres-db psql -U postgres -c "\l"
 docker exec -it test-postgres-db psql -U postgres -c "CREATE DATABASE test_db;"
+
+docker logs typescript-go-dev-container_devcontainer-db-1

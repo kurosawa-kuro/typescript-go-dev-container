@@ -12,7 +12,7 @@ import (
 
 func SetupDB() *gorm.DB {
 	// 環境変数名を.envファイルに合わせる
-	host := os.Getenv("DATABASE_HOST")
+	host := os.Getenv("DOCKER_DATABASE_HOST")
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
 	dbname := os.Getenv("POSTGRES_DB")

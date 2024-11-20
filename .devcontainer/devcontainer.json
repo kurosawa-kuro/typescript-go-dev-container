@@ -12,9 +12,9 @@
 			"extensions": [
 				"humao.rest-client",
 				"golang.go",
-				"howardzuo.vscode-favorites",
 				"eamodio.gitlens",
-				"GitHub.copilot"
+				"howardzuo.vscode-favorites@0.0.8",
+				"GitHub.copilot@1.0.0"
 			]
 		}
 	},

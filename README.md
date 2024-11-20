@@ -1,27 +1,13 @@
 # react-ts-go-docker
 React TypeScript Go in Docker 
 
-
+test
+swagger
+dev画面
 
 
 
 make dev-backend
-
-
-
-
-
-
-
-
-
-
-docker-compose down
-
-
-docker-compose down -v
-docker-compose up -d --build backend
-docker logs -f backend
 
 
 docker compose exec backend go test ./...
@@ -106,3 +92,18 @@ docker system prune -a --volumes -f
 # VSCode関連ファイルのクリーンアップ
 rm -rf ~/.vscode-server
 rm -rf ~/.vscode-remote-containers
+
+
+# PostgreSQL基本設定
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=dev_db
+POSTGRES_PORT=5432
+
+# ホスト設定
+# コンテナ間通信用（バックエンド→DB）
+DOCKER_DATABASE_HOST=db              
+
+# pgAdmin設定
+PGADMIN_DEFAULT_EMAIL=admin@admin.com
+PGADMIN_DEFAULT_PASSWORD=admin

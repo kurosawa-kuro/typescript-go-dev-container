@@ -23,5 +23,10 @@
 
 	"remoteEnv": {
 		"SSH_AUTH_SOCK": "/run/host-services/ssh-auth.sock"
-	}
+	},
+
+	"forwardPorts": [
+		5432,  // PostgreSQL
+		5050   // pgAdmin
+	]
 }

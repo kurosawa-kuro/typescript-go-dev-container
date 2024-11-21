@@ -6,7 +6,7 @@ type Micropost = {
 };
 
 async function getMicroposts(): Promise<Micropost[]> {
-  const res = await fetch('http://app:8000/microposts', {
+  const res = await fetch('http://backend:8000/microposts', {
     headers: {
       'Content-Type': 'application/json',
     },

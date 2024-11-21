@@ -4,29 +4,11 @@ import (
 	"net/http"
 
 	"backend/src/model"
-
-	"time"
+	"backend/src/util"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
-)
-
-type AuthHandler struct {
-	db *gorm.DB
-}
-
-func NewAuthHandler(db *gorm.DB) *AuthHandler {
-	return &AuthHandler{db: db}
-}
-
-const (
-	defaultRole = "user"
-	hashCost    = 10
-	jwtSecret   = "secret"
-	tokenExpiry = 24 * time.Hour
-	cookieName  = "auth_token"
 )
 
 type RegisterRequest struct {
@@ -39,11 +21,12 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-type Claims struct {
-	UserID uint   `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
+type AuthHandler struct {
+	db *gorm.DB
+}
+
+func NewAuthHandler(db *gorm.DB) *AuthHandler {
+	return &AuthHandler{db: db}
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -62,6 +45,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// パスワードハッシュ化
+	const hashCost = 10
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), hashCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
@@ -72,7 +56,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	user := model.User{
 		Email:    req.Email,
 		Password: string(hashedPassword),
-		Role:     defaultRole,
+		Role:     "user",
 	}
 
 	if err := h.db.Create(&user).Error; err != nil {
@@ -107,19 +91,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// JWTトークン生成
-	claims := Claims{
-		UserID: user.ID,
-		Email:  user.Email,
-		Role:   user.Role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExpiry)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(jwtSecret))
+	tokenString, err := util.GenerateToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -134,9 +106,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	// HTTPOnlyクッキーに保存
 	c.SetCookie(
-		cookieName,
+		util.CookieName,
 		tokenString,
-		int(tokenExpiry.Seconds()),
+		int(util.TokenExpiry.Seconds()),
 		"/",
 		"",    // ドメイン
 		false, // HTTPS only
@@ -160,25 +132,16 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 func (h *AuthHandler) User(c *gin.Context) {
 	// クッキーからJWT取得
-	tokenString, err := c.Cookie(cookieName)
+	tokenString, err := c.Cookie(util.CookieName)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 		return
 	}
 
-	// トークン検証
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(jwtSecret), nil
-	})
-	if err != nil || !token.Valid {
+	// JWTトークン検証
+	claims, err := util.ValidateToken(tokenString)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
-		return
-	}
-
-	// データ取得
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse claims"})
 		return
 	}
 

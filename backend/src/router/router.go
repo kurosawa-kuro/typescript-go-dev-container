@@ -11,14 +11,15 @@ import (
 func Setup(db *gorm.DB, r *gin.Engine) {
 	// ハンドラーの初期化
 	micropostHandler := handler.NewMicropostHandler(db)
-	PingDBHandler := handler.NewPingDBHandler(db)
+	healthHandler := handler.NewHealthHandler(db)
 
-	// ルートの設定
-	r.GET("/health", handler.PingHandler)
-	r.GET("/health/db", PingDBHandler.CheckConnection)
-	r.GET("/health/db/dev", PingDBHandler.CheckDevDatabase)
-	r.GET("/health/db/test", PingDBHandler.CheckTestDatabase)
+	// ヘルスチェックルート
+	r.GET("/health", healthHandler.CheckHealth)
+	r.GET("/health/db", healthHandler.CheckDBConnection)
+	r.GET("/health/db/dev", healthHandler.CheckDevDatabase)
+	r.GET("/health/db/test", healthHandler.CheckTestDatabase)
 
+	// マイクロポストルート
 	microposts := r.Group("/microposts")
 	{
 		microposts.POST("", micropostHandler.Create)

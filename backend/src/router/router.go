@@ -11,9 +11,11 @@ import (
 func Setup(db *gorm.DB, r *gin.Engine) {
 	// ハンドラーの初期化
 	micropostHandler := handler.NewMicropostHandler(db)
+	PingDBHandler := handler.NewPingDBHandler(db)
 
 	// ルートの設定
 	r.GET("/ping", handler.PingHandler)
+	r.GET("/ping-db", PingDBHandler.PingDB)
 
 	microposts := r.Group("/microposts")
 	{

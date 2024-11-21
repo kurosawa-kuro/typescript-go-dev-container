@@ -23,13 +23,6 @@ func Setup(db *gorm.DB, r *gin.Engine) {
 		health.GET("/db/test", healthHandler.CheckTestDatabase)
 	}
 
-	// マイクロポストルート
-	microposts := r.Group("/api/microposts")
-	{
-		microposts.POST("", micropostHandler.Create)
-		microposts.GET("", micropostHandler.FindAll)
-	}
-
 	// Auth
 	auth := r.Group("/api/auth")
 	{
@@ -37,16 +30,20 @@ func Setup(db *gorm.DB, r *gin.Engine) {
 		auth.POST("/register", authHandler.Register)
 
 		// ログイン
-
 		auth.POST("/login", authHandler.Login)
 
 		// ログアウト
 		auth.POST("/logout", authHandler.Logout)
 
 		// 認証確認
-
 		auth.GET("/user", authHandler.User)
+	}
 
+	// マイクロポストルート
+	microposts := r.Group("/api/microposts")
+	{
+		microposts.POST("", micropostHandler.Create)
+		microposts.GET("", micropostHandler.FindAll)
 	}
 
 }

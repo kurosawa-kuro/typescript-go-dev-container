@@ -126,7 +126,33 @@ func (h *AuthHandler) Login(c *gin.Context) {
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {
-	c.JSON(http.StatusNotImplemented, gin.H{"message": "Not implemented"})
+	// クッキーからトークンを取得
+	tokenString, err := c.Cookie(util.CookieName)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"message": "Already logged out"})
+		return
+	}
+
+	// トークンを検証
+	claims, err := util.ValidateToken(tokenString)
+	if err == nil {
+		// DBからユーザーのトークンをクリア
+		var user model.User
+		h.db.Model(&user).Where("id = ?", claims.UserID).Update("token", "")
+	}
+
+	// クッキーを削除（有効期限を過去に設定）
+	c.SetCookie(
+		util.CookieName,
+		"",
+		-1,
+		"/",
+		"",
+		false,
+		true,
+	)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
 func (h *AuthHandler) User(c *gin.Context) {

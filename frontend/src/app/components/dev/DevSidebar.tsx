@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navigation = [
-  { name: 'Home', href: '/' },
+  { name: 'Dev', href: '/dev' },
   { name: 'Health Check', href: '/dev/health-check' },
   { name: 'PGAdmin', href: 'http://localhost:5050/' },
   { name: 'Storybook', href: 'http://localhost:6006/' },
   { name: 'Swagger', href: 'http://localhost:8000/swagger/index.html' },
+  { name: 'Home', href: '/' },
 ];
 
 export function DevSidebar() {

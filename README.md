@@ -127,3 +127,5 @@ docker exec -it test-postgres-db psql -U postgres -c "\l"
 docker exec -it test-postgres-db psql -U postgres -c "CREATE DATABASE test_db;"
 
 docker logs typescript-go-dev-container_devcontainer-db-1
+
+host.docker.internal

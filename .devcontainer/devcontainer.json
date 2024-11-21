@@ -6,30 +6,36 @@
 	"service": "app",
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 
-	// VSCode の拡張機能を追加
+	// Features to add to the dev container
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {},
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers/features/go:1": {},
+		"ghcr.io/devcontainers/features/node:1": {}
+	},
+
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"humao.rest-client",
 				"golang.go",
 				"eamodio.gitlens",
-				"howardzuo.vscode-favorites@0.0.8",
-				"GitHub.copilot@1.0.0"
+				"howardzuo.vscode-favorites",
+				"GitHub.copilot"
 			]
 		}
 	},
 
-	// SSH エージェントソケットをマウント
 	"mounts": [
-		"source=/run/host-services/ssh-auth.sock,target=/run/host-services/ssh-auth.sock,type=bind"
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
 	],
 
 	"remoteEnv": {
-		"SSH_AUTH_SOCK": "/run/host-services/ssh-auth.sock"
+		"SSH_AUTH_SOCK": "/home/vscode/.ssh/ssh_auth_sock"
 	},
 
-	"forwardPorts": [
-		5432,  // PostgreSQL
-		5050   // pgAdmin
-	]
+	"forwardPorts": [5432, 5050],
+	
+	"initializeCommand": "mkdir -p ${localEnv:HOME}${localEnv:USERPROFILE}/.ssh",
+	"updateRemoteUserUID": true
 }

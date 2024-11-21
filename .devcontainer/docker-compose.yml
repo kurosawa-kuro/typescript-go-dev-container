@@ -58,25 +58,6 @@ services:
       - "-c"
       - "hba_file=/etc/postgresql/pg_hba.conf"
 
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: unless-stopped
-    env_file:
-      - .env
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-      - ./servers.json:/pgadmin4/servers.json
-    depends_on:
-      - db
-    networks:
-      - dev-network
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
-
   test-db:
     container_name: test-postgres-db
     image: postgres:latest
@@ -103,6 +84,25 @@ services:
       - "password_encryption=md5"
       - "-c"
       - "hba_file=/etc/postgresql/pg_hba.conf"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
+    depends_on:
+      - db
+    networks:
+      - dev-network
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
 
 networks:
   dev-network:

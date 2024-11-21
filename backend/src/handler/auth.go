@@ -104,15 +104,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// HTTPOnlyクッキーに保存
-	c.SetCookie(
-		util.CookieName,
-		tokenString,
-		int(util.TokenExpiry.Seconds()),
-		"/",
-		"",
-		false,
-		true,
-	)
+	util.SetAuthCookie(c, tokenString)
 
 	// レスポンス返却
 	c.JSON(http.StatusOK, gin.H{
@@ -127,7 +119,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 func (h *AuthHandler) Logout(c *gin.Context) {
 	// クッキーからトークンを取得
-	tokenString, err := c.Cookie(util.CookieName)
+	tokenString, err := util.GetAuthCookie(c)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"message": "Already logged out"})
 		return
@@ -141,22 +133,14 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		h.db.Model(&user).Where("id = ?", claims.UserID).Update("token", "")
 	}
 
-	// クッキーを削除（有効期限を過去に設定）
-	c.SetCookie(
-		util.CookieName,
-		"",
-		-1,
-		"/",
-		"",
-		false,
-		true,
-	)
+	// クッキーを削除
+	util.ClearAuthCookie(c)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Successfully logged out"})
 }
 
 func (h *AuthHandler) User(c *gin.Context) {
-	tokenString, err := c.Cookie(util.CookieName)
+	tokenString, err := util.GetAuthCookie(c)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 		return

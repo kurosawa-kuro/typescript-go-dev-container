@@ -6,8 +6,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const JWT_SECRET = "secret"
+
 const (
-	JWTSecret   = "secret"
+	JWTSecret   = JWT_SECRET
 	TokenExpiry = 24 * time.Hour
 	CookieName  = "auth_token"
 )

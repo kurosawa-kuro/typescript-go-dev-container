@@ -131,3 +131,8 @@ docker exec -it test-postgres-db psql -U postgres -c "CREATE DATABASE test_db;"
 docker logs typescript-go-dev-container_devcontainer-db-1
 
 host.docker.internal
+
+
+mcr.microsoft.com/devcontainers/typescript-node:1-22-bookworm
+
+FROM mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm

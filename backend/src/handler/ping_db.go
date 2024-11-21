@@ -39,3 +39,25 @@ func (h *PingDBHandler) PingDB(c *gin.Context) {
 		"message": "DB connected",
 	})
 }
+
+func (h *PingDBHandler) PingDBName(c *gin.Context) {
+	var dbName string
+	// 現在のデータベース名を取得するSQLクエリを実行
+	err := h.db.Raw("SELECT current_database()").Scan(&dbName).Error
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	if dbName == "dev_db" {
+		c.JSON(200, gin.H{
+			"message":  "Connected to dev_db database",
+			"database": dbName,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"error":            "Not connected to dev_db database",
+			"current_database": dbName,
+		})
+	}
+}

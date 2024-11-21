@@ -16,6 +16,7 @@ func Setup(db *gorm.DB, r *gin.Engine) {
 	// ルートの設定
 	r.GET("/ping", handler.PingHandler)
 	r.GET("/ping-db", PingDBHandler.PingDB)
+	r.GET("/ping-db-name", PingDBHandler.PingDBName)
 
 	microposts := r.Group("/microposts")
 	{

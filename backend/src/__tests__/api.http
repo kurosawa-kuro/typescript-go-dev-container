@@ -4,19 +4,19 @@
 # Health Check
 ###################
 ### Ping Test
-GET {{baseUrl}}/ping
+GET {{baseUrl}}/health
 Content-Type: application/json
 
 ### Ping DB
-GET {{baseUrl}}/ping-db
+GET {{baseUrl}}/health/db
 Content-Type: application/json
 
 ### Ping DB Name
-GET {{baseUrl}}/ping-db-name
+GET {{baseUrl}}/health/db/dev
 Content-Type: application/json
 
 ### Ping Test DB Name
-GET {{baseUrl}}/ping-test-db-name
+GET {{baseUrl}}/health/db/test
 Content-Type: application/json
 
 ###################

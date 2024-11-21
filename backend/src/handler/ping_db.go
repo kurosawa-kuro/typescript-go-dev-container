@@ -20,7 +20,7 @@ type dbCheckResult struct {
 	err        error
 }
 
-func (h *PingDBHandler) checkDatabase(db *gorm.DB, expectedDB string) dbCheckResult {
+func (h *PingDBHandler) verifyDatabaseName(db *gorm.DB, expectedDB string) dbCheckResult {
 	var dbName string
 	err := db.Raw("SELECT current_database()").Scan(&dbName).Error
 	return dbCheckResult{
@@ -30,7 +30,7 @@ func (h *PingDBHandler) checkDatabase(db *gorm.DB, expectedDB string) dbCheckRes
 	}
 }
 
-func (h *PingDBHandler) handleDBResponse(c *gin.Context, result dbCheckResult) {
+func (h *PingDBHandler) sendDatabaseResponse(c *gin.Context, result dbCheckResult) {
 	if result.err != nil {
 		c.JSON(500, gin.H{
 			"error":   "Failed to get database name",
@@ -52,7 +52,7 @@ func (h *PingDBHandler) handleDBResponse(c *gin.Context, result dbCheckResult) {
 	}
 }
 
-func (h *PingDBHandler) PingDB(c *gin.Context) {
+func (h *PingDBHandler) CheckConnection(c *gin.Context) {
 	sqlDB, err := h.db.DB()
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
@@ -67,12 +67,12 @@ func (h *PingDBHandler) PingDB(c *gin.Context) {
 	c.JSON(200, gin.H{"message": "DB connected"})
 }
 
-func (h *PingDBHandler) PingDBName(c *gin.Context) {
-	result := h.checkDatabase(h.db, "dev_db")
-	h.handleDBResponse(c, result)
+func (h *PingDBHandler) CheckDevDatabase(c *gin.Context) {
+	result := h.verifyDatabaseName(h.db, "dev_db")
+	h.sendDatabaseResponse(c, result)
 }
 
-func (h *PingDBHandler) PingTestDBName(c *gin.Context) {
+func (h *PingDBHandler) CheckTestDatabase(c *gin.Context) {
 	testDBConfig := "host=test-db user=postgres password=postgres dbname=test_db port=5432 sslmode=disable"
 	testDB, err := gorm.Open(postgres.Open(testDBConfig), &gorm.Config{})
 	if err != nil {
@@ -83,6 +83,6 @@ func (h *PingDBHandler) PingTestDBName(c *gin.Context) {
 		return
 	}
 
-	result := h.checkDatabase(testDB, "test_db")
-	h.handleDBResponse(c, result)
+	result := h.verifyDatabaseName(testDB, "test_db")
+	h.sendDatabaseResponse(c, result)
 }

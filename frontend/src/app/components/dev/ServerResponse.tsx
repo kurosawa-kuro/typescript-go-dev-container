@@ -3,12 +3,13 @@ type ApiResponse<T> = {
   error?: string;
 };
 
-type PingResponse = {
+type HealthResponse = {
   message: string;
 };
 
-type PingDBResponse = {
+type DatabaseResponse = {
   message: string;
+  database?: string;
 };
 
 type Micropost = {
@@ -40,7 +41,7 @@ async function fetchFromApi<T>(endpoint: string): Promise<ApiResponse<T>> {
 }
 
 function ResponseSection({ title, data }: { title: string; data: any }) {
-  const isPingResponse = title.includes('Ping');
+  const isHealthResponse = title.toLowerCase().includes('health');
   
   return (
     <div className="w-full">
@@ -48,7 +49,7 @@ function ResponseSection({ title, data }: { title: string; data: any }) {
         {title}
       </h3>
       <pre className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm overflow-auto text-sm
-        ${isPingResponse ? 'min-h-[150px]' : 'min-h-[600px]'}`}>
+        ${isHealthResponse ? 'min-h-[150px]' : 'min-h-[600px]'}`}>
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>
@@ -56,8 +57,10 @@ function ResponseSection({ title, data }: { title: string; data: any }) {
 }
 
 export async function ServerResponse() {
-  const pingResponse = await fetchFromApi<PingResponse>('/ping');
-  const pingDBResponse = await fetchFromApi<PingDBResponse>('/ping-db');
+  const healthResponse = await fetchFromApi<HealthResponse>('/health');
+  const dbHealthResponse = await fetchFromApi<DatabaseResponse>('/health/db');
+  const devDBResponse = await fetchFromApi<DatabaseResponse>('/health/db/dev');
+  const testDBResponse = await fetchFromApi<DatabaseResponse>('/health/db/test');
   const micropostsResponse = await fetchFromApi<Micropost[]>('/microposts');
 
   return (
@@ -67,12 +70,20 @@ export async function ServerResponse() {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <ResponseSection 
-          title="Ping Response" 
-          data={pingResponse.data || pingResponse.error} 
+          title="Health Check" 
+          data={healthResponse.data || healthResponse.error} 
         />
         <ResponseSection 
-          title="Ping DB Response" 
-          data={pingDBResponse.data || pingDBResponse.error} 
+          title="Database Health" 
+          data={dbHealthResponse.data || dbHealthResponse.error} 
+        />
+        <ResponseSection 
+          title="Dev Database Status Health" 
+          data={devDBResponse.data || devDBResponse.error} 
+        />
+        <ResponseSection 
+          title="Test Database Status Health" 
+          data={testDBResponse.data || testDBResponse.error} 
         />
         <ResponseSection 
           title="Microposts" 

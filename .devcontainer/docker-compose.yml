@@ -24,7 +24,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     env_file:
       - .env
     networks:
@@ -44,6 +44,8 @@ services:
       - "log_connections=on"
       - "-c"
       - "password_encryption=md5"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
 
   pgadmin:
     image: dpage/pgadmin4
@@ -70,6 +72,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-test-data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     networks:
       - dev-network
     ports:
@@ -79,11 +82,16 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: test_db
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
-    command: >
-      bash -c "
-        echo \"CREATE DATABASE test_db;\" > /docker-entrypoint-initdb.d/init.sql &&
-        docker-entrypoint.sh postgres
-      "
+    command:
+      - "postgres"
+      - "-c"
+      - "listen_addresses=*"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "password_encryption=md5"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
 
 networks:
   dev-network:

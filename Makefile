@@ -33,13 +33,19 @@ clean: ## コンテナ、ボリューム、ネットワークを削除
 clean-all: clean ## Dockerシステム全体のクリーンアップ（すべてのコンテナ、イメージ、ボリュームを削除）
 	docker system prune -a --volumes -f
 
-clean-images: ## すべてのDockerイメージを削除
-	docker rmi $$(docker images -q) -f 2>/dev/null || true
+clean-deep: ## 完全クリーンアップ（Dev Container環境を完全にリセット）
+	cd .devcontainer && \
+	$(DC) down -v && \
+	docker stop $$(docker ps -a -q) 2>/dev/null || true && \
+	docker rm $$(docker ps -a -q) 2>/dev/null || true && \
+	docker rmi $$(docker images -q) -f 2>/dev/null || true && \
+	docker volume rm $$(docker volume ls -q) 2>/dev/null || true && \
+	docker network prune -f && \
+	docker system prune -a --volumes -f && \
+	rm -rf ~/.vscode-server && \
+	rm -rf ~/.vscode-remote-containers
 
-clean-volumes: ## すべてのDockerボリュームを削除
-	docker volume rm $$(docker volume ls -q) 2>/dev/null || true
-
-reset: clean-all ## 完全なリセット（すべてを削除して再ビルド）
+reset: clean-deep ## 完全なリセット（すべてを削除して再ビルド）
 	$(DC) up --build -d
 
 ###################
@@ -83,11 +89,15 @@ test-backend-watch: ## バックエンドのテストをウォッチモードで
 
 test: test-frontend test-backend
 
-###################
 # 開発用コマンド
 ###################
+dev-frontend: ## フロントエンドの開発サーバーを起動
+	cd frontend && npm run dev
+
 dev-backend: ## バックエンドの開発サーバーを起動（ホットリロード）
 	cd backend/src && air -c ../.air.toml
+
+dev: dev-backend dev-frontend 
 
 ###################
 # ヘルプ

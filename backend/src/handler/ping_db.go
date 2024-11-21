@@ -35,5 +35,7 @@ func (h *PingDBHandler) PingDB(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, "DB connected")
+	c.JSON(200, gin.H{
+		"message": "DB connected",
+	})
 }

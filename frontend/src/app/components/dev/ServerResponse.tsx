@@ -7,6 +7,10 @@ type PingResponse = {
   message: string;
 };
 
+type PingDBResponse = {
+  message: string;
+};
+
 type Micropost = {
   id: number;
   title: string;
@@ -36,12 +40,15 @@ async function fetchFromApi<T>(endpoint: string): Promise<ApiResponse<T>> {
 }
 
 function ResponseSection({ title, data }: { title: string; data: any }) {
+  const isPingResponse = title.includes('Ping');
+  
   return (
     <div className="w-full">
       <h3 className="text-xl font-semibold mb-3 text-gray-800 dark:text-gray-200">
         {title}
       </h3>
-      <pre className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm overflow-auto min-h-[600px] text-sm">
+      <pre className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm overflow-auto text-sm
+        ${isPingResponse ? 'min-h-[150px]' : 'min-h-[600px]'}`}>
         {JSON.stringify(data, null, 2)}
       </pre>
     </div>
@@ -50,6 +57,7 @@ function ResponseSection({ title, data }: { title: string; data: any }) {
 
 export async function ServerResponse() {
   const pingResponse = await fetchFromApi<PingResponse>('/ping');
+  const pingDBResponse = await fetchFromApi<PingDBResponse>('/ping-db');
   const micropostsResponse = await fetchFromApi<Micropost[]>('/microposts');
 
   return (
@@ -61,6 +69,10 @@ export async function ServerResponse() {
         <ResponseSection 
           title="Ping Response" 
           data={pingResponse.data || pingResponse.error} 
+        />
+        <ResponseSection 
+          title="Ping DB Response" 
+          data={pingDBResponse.data || pingDBResponse.error} 
         />
         <ResponseSection 
           title="Microposts" 

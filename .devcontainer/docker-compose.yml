@@ -5,13 +5,25 @@ volumes:
   postgres-test-data:
 
 services:
-  app:
+  backend:
     build: 
       context: .
-      dockerfile: ./docker/go/Dockerfile
+      dockerfile: ./docker/backend/Dockerfile
     env_file:
         - .env
+    volumes:
+      - ../..:/workspaces:cached
+    networks:
+      - dev-network
+    command: sleep infinity
 
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    env_file:
+      - .env
+    user: vscode
     volumes:
       - ../..:/workspaces:cached
       - next-node-modules:/workspaces/frontend/node_modules

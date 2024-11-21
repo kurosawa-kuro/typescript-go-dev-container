@@ -2,6 +2,7 @@ package router
 
 import (
 	"backend/src/handler"
+	"backend/src/middleware"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -23,27 +24,32 @@ func Setup(db *gorm.DB, r *gin.Engine) {
 		health.GET("/db/test", healthHandler.CheckTestDatabase)
 	}
 
-	// Auth
+	// Auth routes - パブリックルート
 	auth := r.Group("/api/auth")
 	{
-		// 新規ユーザー登録
 		auth.POST("/register", authHandler.Register)
-
-		// ログイン
 		auth.POST("/login", authHandler.Login)
+	}
 
-		// ログアウト
-		auth.POST("/logout", authHandler.Logout)
-
-		// 認証確認
-		auth.GET("/user", authHandler.User)
+	// Auth routes - 認証が必要なルート
+	authProtected := r.Group("/api/auth")
+	authProtected.Use(middleware.IsAuthenticated())
+	{
+		authProtected.POST("/logout", authHandler.Logout)
+		authProtected.GET("/user", authHandler.User)
 	}
 
 	// マイクロポストルート
 	microposts := r.Group("/api/microposts")
 	{
-		microposts.POST("", micropostHandler.Create)
+		// パブリックエンドポイント
 		microposts.GET("", micropostHandler.FindAll)
-	}
 
+		// 認証が必要なエンドポイント
+		authenticated := microposts.Group("")
+		authenticated.Use(middleware.IsAuthenticated())
+		{
+			authenticated.POST("", micropostHandler.Create)
+		}
+	}
 }

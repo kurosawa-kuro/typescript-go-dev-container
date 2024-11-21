@@ -91,7 +91,7 @@ POST {{baseUrl}}/api/auth/register
 Content-Type: {{contentType}}
 
 {
-    "email": "test6@example.com",
+    "email": "test8@example.com",
     "password": "password"
 }   
 
@@ -107,7 +107,7 @@ POST {{baseUrl}}/api/auth/login
 Content-Type: {{contentType}}
 
 {
-    "email": "test6@example.com",
+    "email": "test8@example.com",
     "password": "password"
 }
 

@@ -1,24 +1,16 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "@/app/globals.css";
+import { DevSidebar } from "@/app/components/dev/DevSidebar";
 
-const inter = Inter({ subsets: ["latin"] });
-
-export const metadata: Metadata = {
-  title: "Go Node.js RDB App",
-  description: "Go Node.js RDB App",
-};
-
-export default function RootLayout({
+export default function DevTemplate({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+    <div className="flex min-h-screen">
+      <DevSidebar />
+      <main className="flex-1 overflow-auto">
         {children}
-      </body>
-    </html>
+      </main>
+    </div>
   );
 }

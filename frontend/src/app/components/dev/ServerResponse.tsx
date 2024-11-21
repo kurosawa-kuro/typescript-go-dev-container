@@ -20,7 +20,7 @@ type Micropost = {
 
 async function fetchFromApi<T>(endpoint: string): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(`http://app:8000${endpoint}`, {
+    const res = await fetch(`http://backend:8000${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
       },

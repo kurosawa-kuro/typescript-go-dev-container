@@ -1,7 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/typescript-node:1-20-bullseye
+FROM mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm
 
 # Set working directory
 WORKDIR /workspaces
-
-# Set default user
-USER vscode

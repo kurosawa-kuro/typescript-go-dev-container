@@ -23,7 +23,6 @@ services:
       dockerfile: ./docker/frontend/Dockerfile
     env_file:
       - .env
-    user: vscode
     volumes:
       - ../..:/workspaces:cached
       - next-node-modules:/workspaces/frontend/node_modules

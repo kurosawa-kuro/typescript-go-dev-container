@@ -15,6 +15,10 @@ Content-Type: application/json
 GET {{baseUrl}}/ping-db-name
 Content-Type: application/json
 
+### Ping Test DB Name
+GET {{baseUrl}}/ping-test-db-name
+Content-Type: application/json
+
 ###################
 # Microposts API
 ###################

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -57,6 +58,44 @@ func (h *PingDBHandler) PingDBName(c *gin.Context) {
 	} else {
 		c.JSON(404, gin.H{
 			"error":            "Not connected to dev_db database",
+			"current_database": dbName,
+		})
+	}
+}
+
+func (h *PingDBHandler) PingTestDBName(c *gin.Context) {
+	// テスト用DBの接続情報を作成
+	testDBConfig := "host=test-db user=postgres password=postgres dbname=test_db port=5432 sslmode=disable"
+
+	// テスト用DBへの一時的な接続を作成
+	testDB, err := gorm.Open(postgres.Open(testDBConfig), &gorm.Config{})
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error":   "Failed to connect to test database",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	// データベース名を確認
+	var dbName string
+	err = testDB.Raw("SELECT current_database()").Scan(&dbName).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error":   "Failed to get test database name",
+			"details": err.Error(),
+		})
+		return
+	}
+
+	if dbName == "test_db" {
+		c.JSON(200, gin.H{
+			"message":  "Connected to test database",
+			"database": dbName,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"error":            "Not connected to test database",
 			"current_database": dbName,
 		})
 	}

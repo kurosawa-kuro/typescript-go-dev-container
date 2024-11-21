@@ -1,15 +1,68 @@
 package handler
 
 import (
-	"net/http"
-
 	"backend/src/model"
-	"backend/src/util"
+	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
+// 定数定義
+const (
+	HashCost    = 14
+	CookieName  = "token"
+	SecretKey   = "your-secret-key" // 本番環境では環境変数から取得すべき
+	TokenExpiry = 24 * time.Hour
+)
+
+// ユーティリティ関数
+func hashPassword(password string) (string, error) {
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), HashCost)
+	return string(hashedBytes), err
+}
+
+func comparePasswords(hashedPassword, plainPassword string) error {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
+}
+
+type Claims struct {
+	UserID uint   `json:"user_id"`
+	Email  string `json:"email"`
+	Role   string `json:"role"`
+	jwt.RegisteredClaims
+}
+
+func generateToken(userID uint, email, role string) (string, error) {
+	claims := Claims{
+		UserID: userID,
+		Email:  email,
+		Role:   role,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TokenExpiry)),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(SecretKey))
+}
+
+func validateToken(tokenString string) (*Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
+}
+
+// リクエスト構造体
 type RegisterRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
@@ -20,6 +73,7 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+// ハンドラー構造体と実装
 type AuthHandler struct {
 	db *gorm.DB
 }
@@ -44,7 +98,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// パスワードハッシュ化
-	hashedPassword, err := util.HashPassword(req.Password)
+	hashedPassword, err := hashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
@@ -83,13 +137,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// パスワード照合
-	if err := util.ComparePasswords(user.Password, req.Password); err != nil {
+	if err := comparePasswords(user.Password, req.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
 	// JWTトークン生成
-	tokenString, err := util.GenerateToken(user.ID, user.Email, user.Role)
+	tokenString, err := generateToken(user.ID, user.Email, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
@@ -104,9 +158,9 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	// HTTPOnlyクッキーに保存
 	c.SetCookie(
-		util.CookieName,
+		CookieName,
 		tokenString,
-		int(util.TokenExpiry.Seconds()),
+		int(TokenExpiry.Seconds()),
 		"/",
 		"",    // ドメイン
 		false, // HTTPS only
@@ -130,14 +184,14 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 
 func (h *AuthHandler) User(c *gin.Context) {
 	// クッキーからJWT取得
-	tokenString, err := c.Cookie(util.CookieName)
+	tokenString, err := c.Cookie(CookieName)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "No token provided"})
 		return
 	}
 
 	// JWTトークン検証
-	claims, err := util.ValidateToken(tokenString)
+	claims, err := validateToken(tokenString)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 		return

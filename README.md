@@ -123,6 +123,8 @@ PGADMIN_DEFAULT_PASSWORD=admin
 cd ./backend/src
 go test ./handler/... ./test/... -v
 
+
+
 docker exec -it test-postgres-db psql -U postgres -c "\l"
 docker exec -it test-postgres-db psql -U postgres -c "CREATE DATABASE test_db;"
 

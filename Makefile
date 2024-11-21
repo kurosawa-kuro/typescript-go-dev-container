@@ -76,7 +76,12 @@ test-frontend-watch: ## フロントエンドのテストをウォッチモー�
 	$(DC) exec frontend npm run test:watch
 
 test-backend: ## バックエンドのテストを実行
-	$(DC) exec backend go test ./...
+	cd backend/src && go test ./handler/... ./test/... -v
+
+test-backend-watch: ## バックエンドのテストをウォッチモードで実行
+	cd backend/src && go test ./handler/... ./test/... -v -watch
+
+test: test-frontend test-backend
 
 ###################
 # 開発用コマンド

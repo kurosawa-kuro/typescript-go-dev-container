@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Server Response', href: '/server-response' },
+  { name: 'Server Response', href: '/dev/check-server-response' },
   { name: 'PGAdmin', href: 'http://localhost:5050/' },
   { name: 'Storybook', href: 'http://localhost:6006/' },
   { name: 'Swagger', href: 'http://localhost:8000/swagger/index.html' },

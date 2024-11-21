@@ -7,7 +7,6 @@ import (
 	"backend/src/util"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -45,8 +44,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// パスワードハッシュ化
-	const hashCost = 10
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), hashCost)
+	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
@@ -55,7 +53,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	// ユーザー作成
 	user := model.User{
 		Email:    req.Email,
-		Password: string(hashedPassword),
+		Password: hashedPassword,
 		Role:     "user",
 	}
 
@@ -85,7 +83,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// パスワード照合
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+	if err := util.ComparePasswords(user.Password, req.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}

@@ -1,35 +1,82 @@
 @baseUrl = http://localhost:8000
+@contentType = application/json
 
 ###################
-# Health Check
+# Health Check API
 ###################
-### Ping Test
+
+### Service Health Check
+# Returns service health status
 GET {{baseUrl}}/health
-Content-Type: application/json
+Content-Type: {{contentType}}
 
-### Ping DB
+# Expected Response: 200
+# {
+#   "message": "Service is healthy"
+# }
+
+### Database Connection Check
+# Verifies database connectivity
 GET {{baseUrl}}/health/db
-Content-Type: application/json
+Content-Type: {{contentType}}
 
-### Ping DB Name
+# Expected Response: 200
+# {
+#   "message": "DB connected"
+# }
+
+### Development Database Check
+# Verifies connection to development database
 GET {{baseUrl}}/health/db/dev
-Content-Type: application/json
+Content-Type: {{contentType}}
 
-### Ping Test DB Name
+# Expected Response: 200
+# {
+#   "message": "Connected to dev_db database",
+#   "database": "dev_db"
+# }
+
+### Test Database Check
+# Verifies connection to test database
 GET {{baseUrl}}/health/db/test
-Content-Type: application/json
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "message": "Connected to test_db database",
+#   "database": "test_db"
+# }
 
 ###################
 # Microposts API
 ###################
-### Create Micropost
+
+### Create New Micropost
+# Creates a new micropost with the given title
 POST {{baseUrl}}/microposts
-Content-Type: application/json
+Content-Type: {{contentType}}
 
 {
     "title": "test"
 }
 
-### Find All Microposts
+# Expected Response: 201
+# {
+#   "id": 1,
+#   "title": "test"
+# }
+
+### List All Microposts
+# Retrieves all microposts
 GET {{baseUrl}}/microposts
-Content-Type: application/json
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "microposts": [
+#     {
+#       "id": 1,
+#       "title": "test"
+#     }
+#   ]
+# }

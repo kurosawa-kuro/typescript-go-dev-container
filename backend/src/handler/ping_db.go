@@ -14,14 +14,44 @@ func NewPingDBHandler(db *gorm.DB) *PingDBHandler {
 	return &PingDBHandler{db: db}
 }
 
-// PingDB godoc
-// @Summary      Ping DB
-// @Description  ping DB
-// @Tags         ping-db
-// @Accept       json
-// @Produce      json
-// @Success      200        {object}  string
-// @Router       /ping-db [get]
+type dbCheckResult struct {
+	expectedDB string
+	actualDB   string
+	err        error
+}
+
+func (h *PingDBHandler) checkDatabase(db *gorm.DB, expectedDB string) dbCheckResult {
+	var dbName string
+	err := db.Raw("SELECT current_database()").Scan(&dbName).Error
+	return dbCheckResult{
+		expectedDB: expectedDB,
+		actualDB:   dbName,
+		err:        err,
+	}
+}
+
+func (h *PingDBHandler) handleDBResponse(c *gin.Context, result dbCheckResult) {
+	if result.err != nil {
+		c.JSON(500, gin.H{
+			"error":   "Failed to get database name",
+			"details": result.err.Error(),
+		})
+		return
+	}
+
+	if result.actualDB == result.expectedDB {
+		c.JSON(200, gin.H{
+			"message":  "Connected to " + result.expectedDB + " database",
+			"database": result.actualDB,
+		})
+	} else {
+		c.JSON(404, gin.H{
+			"error":            "Not connected to " + result.expectedDB + " database",
+			"current_database": result.actualDB,
+		})
+	}
+}
+
 func (h *PingDBHandler) PingDB(c *gin.Context) {
 	sqlDB, err := h.db.DB()
 	if err != nil {
@@ -29,45 +59,21 @@ func (h *PingDBHandler) PingDB(c *gin.Context) {
 		return
 	}
 
-	// Just ping the existing connection
-	err = sqlDB.Ping()
-	if err != nil {
+	if err := sqlDB.Ping(); err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, gin.H{
-		"message": "DB connected",
-	})
+	c.JSON(200, gin.H{"message": "DB connected"})
 }
 
 func (h *PingDBHandler) PingDBName(c *gin.Context) {
-	var dbName string
-	// 現在のデータベース名を取得するSQLクエリを実行
-	err := h.db.Raw("SELECT current_database()").Scan(&dbName).Error
-	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
-	}
-
-	if dbName == "dev_db" {
-		c.JSON(200, gin.H{
-			"message":  "Connected to dev_db database",
-			"database": dbName,
-		})
-	} else {
-		c.JSON(404, gin.H{
-			"error":            "Not connected to dev_db database",
-			"current_database": dbName,
-		})
-	}
+	result := h.checkDatabase(h.db, "dev_db")
+	h.handleDBResponse(c, result)
 }
 
 func (h *PingDBHandler) PingTestDBName(c *gin.Context) {
-	// テスト用DBの接続情報を作成
 	testDBConfig := "host=test-db user=postgres password=postgres dbname=test_db port=5432 sslmode=disable"
-
-	// テスト用DBへの一時的な接続を作成
 	testDB, err := gorm.Open(postgres.Open(testDBConfig), &gorm.Config{})
 	if err != nil {
 		c.JSON(500, gin.H{
@@ -77,26 +83,6 @@ func (h *PingDBHandler) PingTestDBName(c *gin.Context) {
 		return
 	}
 
-	// データベース名を確認
-	var dbName string
-	err = testDB.Raw("SELECT current_database()").Scan(&dbName).Error
-	if err != nil {
-		c.JSON(500, gin.H{
-			"error":   "Failed to get test database name",
-			"details": err.Error(),
-		})
-		return
-	}
-
-	if dbName == "test_db" {
-		c.JSON(200, gin.H{
-			"message":  "Connected to test database",
-			"database": dbName,
-		})
-	} else {
-		c.JSON(404, gin.H{
-			"error":            "Not connected to test database",
-			"current_database": dbName,
-		})
-	}
+	result := h.checkDatabase(testDB, "test_db")
+	h.handleDBResponse(c, result)
 }

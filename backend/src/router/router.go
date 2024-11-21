@@ -18,6 +18,7 @@ func Setup(db *gorm.DB, r *gin.Engine) {
 	r.GET("/ping-db", PingDBHandler.PingDB)
 	r.GET("/ping-db-name", PingDBHandler.PingDBName)
 	r.GET("/ping-test-db-name", PingDBHandler.PingTestDBName)
+
 	microposts := r.Group("/microposts")
 	{
 		microposts.POST("", micropostHandler.Create)

@@ -6,10 +6,12 @@ import { usePathname } from 'next/navigation';
 const navigation = [
   { name: 'Dev', href: '/dev' },
   { name: 'Health Check', href: '/dev/health-check' },
+  { name: 'Login', href: '/dev/login' },
   { name: 'PGAdmin', href: 'http://localhost:5050/' },
   { name: 'Storybook', href: 'http://localhost:6006/' },
   { name: 'Swagger', href: 'http://localhost:8000/swagger/index.html' },
   { name: 'Home', href: '/' },
+  { name: 'Admin', href: '/admin' },
 ];
 
 export function DevSidebar() {

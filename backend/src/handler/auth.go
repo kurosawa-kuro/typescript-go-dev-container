@@ -6,24 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
-
-// 定数定義
-const (
-	HashCost = 14
-)
-
-// ユーティリティ関数
-func hashPassword(password string) (string, error) {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), HashCost)
-	return string(hashedBytes), err
-}
-
-func comparePasswords(hashedPassword, plainPassword string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
-}
 
 // リクエスト構造体
 type RegisterRequest struct {
@@ -61,7 +45,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	// パスワードハッシュ化
-	hashedPassword, err := hashPassword(req.Password)
+	hashedPassword, err := util.HashPassword(req.Password)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to process password"})
 		return
@@ -100,7 +84,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// パスワード照合
-	if err := comparePasswords(user.Password, req.Password); err != nil {
+	if err := util.ComparePasswords(user.Password, req.Password); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}

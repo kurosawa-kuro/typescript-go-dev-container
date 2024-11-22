@@ -1,47 +1,33 @@
+'use client';
+
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login, isLoading } = useAuthStore();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include', // Important for handling cookies
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-
-      // Login successful
-      router.push('/'); // Redirect to home page
-      router.refresh(); // Refresh the page to update auth state
+      await login(email, password);
+      router.push('/'); // ログイン成功後のリダイレクト
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md dark:bg-gray-800">
+      <h2 className="text-2xl font-bold mb-6 text-center dark:text-white">Login</h2>
       
       {error && (
         <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -53,7 +39,7 @@ export default function LoginForm() {
         <div className="mb-4">
           <label 
             htmlFor="email" 
-            className="block text-gray-700 font-medium mb-2"
+            className="block text-gray-700 dark:text-gray-200 font-medium mb-2"
           >
             Email
           </label>
@@ -62,7 +48,7 @@ export default function LoginForm() {
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
@@ -70,7 +56,7 @@ export default function LoginForm() {
         <div className="mb-6">
           <label 
             htmlFor="password" 
-            className="block text-gray-700 font-medium mb-2"
+            className="block text-gray-700 dark:text-gray-200 font-medium mb-2"
           >
             Password
           </label>
@@ -79,7 +65,7 @@ export default function LoginForm() {
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>

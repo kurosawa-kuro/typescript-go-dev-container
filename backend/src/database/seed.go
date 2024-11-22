@@ -53,6 +53,14 @@ func cleanDatabase(db *gorm.DB) error {
 		return err
 	}
 
+	// シーケンスのリセット
+	if err := db.Exec("ALTER SEQUENCE microposts_id_seq RESTART WITH 1").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1").Error; err != nil {
+		return err
+	}
+
 	// PostgreSQL用の外部キー制約の有効化
 	if err := db.Exec("SET CONSTRAINTS ALL IMMEDIATE").Error; err != nil {
 		return err

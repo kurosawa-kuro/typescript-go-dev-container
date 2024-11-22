@@ -57,11 +57,11 @@ function ResponseSection({ title, data }: { title: string; data: any }) {
 }
 
 export async function ServerResponse() {
-  const healthResponse = await fetchFromApi<HealthResponse>('/health');
-  const dbHealthResponse = await fetchFromApi<DatabaseResponse>('/health/db');
-  const devDBResponse = await fetchFromApi<DatabaseResponse>('/health/db/dev');
-  const testDBResponse = await fetchFromApi<DatabaseResponse>('/health/db/test');
-  const micropostsResponse = await fetchFromApi<Micropost[]>('/microposts');
+  const healthResponse = await fetchFromApi<HealthResponse>('/api/health');
+  const dbHealthResponse = await fetchFromApi<DatabaseResponse>('/api/health/db');
+  const devDBResponse = await fetchFromApi<DatabaseResponse>('/api/health/db/dev');
+  const testDBResponse = await fetchFromApi<DatabaseResponse>('/api/health/db/test');
+  const micropostsResponse = await fetchFromApi<Micropost[]>('/api/microposts');
 
   return (
     <div className="bg-gray-100 dark:bg-gray-800/50 rounded-xl p-8 shadow-lg">

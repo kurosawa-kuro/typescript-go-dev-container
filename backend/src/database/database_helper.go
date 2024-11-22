@@ -35,9 +35,52 @@ func Seed(db *gorm.DB) error {
 		return err
 	}
 
+	// マイクロポストの作成
+	if err := createMicroposts(db, append(users, admin)); err != nil {
+		return err
+	}
+
 	log.Printf("Created admin user: %s", admin.Email)
 	log.Printf("Created %d test users", len(users))
 	log.Println("Seed data has been successfully loaded")
+	return nil
+}
+
+// createMicroposts マイクロポストを作成
+func createMicroposts(db *gorm.DB, users []*model.User) error {
+	titles := []string{
+		"First Post",
+		"Hello World",
+		"Testing Micropost",
+		"Another Post",
+		"Final Test",
+	}
+
+	imagePaths := []string{
+		"/images/post1.jpg",
+		"/images/post2.jpg",
+		"/images/post3.jpg",
+		"/images/post4.jpg",
+		"/images/post5.jpg",
+	}
+
+	for _, user := range users {
+		for i, title := range titles {
+			micropost := &model.Micropost{
+				UserID:    user.ID,
+				Title:     title,
+				ImagePath: imagePaths[i%len(imagePaths)], // 画像パスをローテーション
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+			}
+
+			if err := db.Create(micropost).Error; err != nil {
+				return fmt.Errorf("failed to create micropost for user %s: %v", user.Email, err)
+			}
+		}
+		log.Printf("Created %d microposts for user: %s", len(titles), user.Email)
+	}
+
 	return nil
 }
 
@@ -48,7 +91,7 @@ func cleanDatabase(db *gorm.DB) error {
 		return err
 	}
 
-	// テーブルの削除
+	// 削除順序を変更（外部キーを持つテーブルから先に削除）
 	if err := db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&model.Micropost{}).Error; err != nil {
 		return err
 	}
@@ -123,30 +166,3 @@ func createTestUsers(db *gorm.DB) ([]*model.User, error) {
 
 	return users, nil
 }
-
-// createMicroposts マイクロポストを作成
-// func createMicroposts(db *gorm.DB, users []*model.User) error {
-// 	titles := []string{
-// 		"First Post",
-// 		"Hello World",
-// 		"Testing Micropost",
-// 		"Another Post",
-// 		"Final Test",
-// 	}
-
-// 	for _, user := range users {
-// 		for _, title := range titles {
-// 			micropost := &model.Micropost{
-// 				Title:     title,
-// 				CreatedAt: time.Now(),
-// 				UpdatedAt: time.Now(),
-// 			}
-
-// 			if err := db.Create(micropost).Error; err != nil {
-// 				return err
-// 			}
-// 		}
-// 	}
-
-// 	return nil
-// }

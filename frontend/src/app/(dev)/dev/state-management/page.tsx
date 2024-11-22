@@ -4,6 +4,11 @@ import { useAuthStore } from '@/stores/authStore';
 export default function Home() {
   const { user, isLoading, login, logout } = useAuthStore();
 
+  const loginUser = {
+    email: 'user1@example.com',
+    password: 'password',
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <main className="container mx-auto px-4 py-8">
@@ -17,7 +22,7 @@ export default function Home() {
 
           <div className="mt-4 space-y-2">
             <button
-              onClick={() => login('user1@example.com', 'password')}
+              onClick={() => login(loginUser.email, loginUser.password)}
               className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
               disabled={isLoading}
             >

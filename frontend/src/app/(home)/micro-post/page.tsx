@@ -4,6 +4,7 @@ import CreateMicropostButton from './CreateMicropostButton';
 type Micropost = {
   id: number;
   title: string;
+  image_path: string;"Q)Send("")q
   created_at: string;
   updated_at: string;
 };

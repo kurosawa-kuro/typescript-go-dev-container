@@ -1,6 +1,7 @@
 type Micropost = {
     id: number;
     title: string;
+    image_path: string;
     created_at: string;
     updated_at: string;
   };
@@ -20,6 +21,15 @@ type Micropost = {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               {post.title}
             </h2>
+            {post.image_path && (
+              <div className="mt-4">
+                <img
+                  src={`http://localhost:8000/${post.image_path}`}
+                  alt={post.title}
+                  className="w-full max-w-2xl h-auto rounded-lg"
+                />
+              </div>
+            )}
             <div className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Created: {new Date(post.created_at).toLocaleDateString()}
             </div>

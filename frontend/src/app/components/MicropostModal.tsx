@@ -5,17 +5,18 @@ import { useState } from 'react';
 type MicropostModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (title: string) => void;
+  onSubmit: (title: string, image: File | null) => void;
 };
 
 export default function MicropostModal({ isOpen, onClose, onSubmit }: MicropostModalProps) {
   const [title, setTitle] = useState('');
+  const [image, setImage] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(title);
+    onSubmit(title, image);
     setTitle('');
-    onClose();
+    setImage(null);
   };
 
   if (!isOpen) return null;
@@ -38,6 +39,18 @@ export default function MicropostModal({ isOpen, onClose, onSubmit }: MicropostM
               onChange={(e) => setTitle(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               required
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="image" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Image
+            </label>
+            <input
+              type="file"
+              id="image"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files?.[0] || null)}
+              className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
           </div>
           <div className="flex justify-end space-x-2">

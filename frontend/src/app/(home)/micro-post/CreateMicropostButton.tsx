@@ -10,17 +10,20 @@ export default function CreateMicropostButton() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleCreateMicropost = async (title: string) => {
+  const handleCreateMicropost = async (title: string, image: File | null) => {
     setIsLoading(true);
     setError(null);
 
     try {
+      const formData = new FormData();
+      formData.append('title', title);
+      if (image) {
+        formData.append('image', image);
+      }
+
       const response = await fetch('http://localhost:8000/api/microposts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title }),
+        body: formData,
         credentials: 'include',
       });
 

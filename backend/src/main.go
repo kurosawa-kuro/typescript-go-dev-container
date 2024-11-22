@@ -4,9 +4,10 @@ import (
 	"backend/src/config"
 	"backend/src/router"
 
-	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/cors"
 	"log"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 )
 
 // @title           Your API Title
@@ -29,6 +30,9 @@ func main() {
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	}))
+
+	// 静的ファイルのルートを設定
+	r.Static("/uploads", "./uploads")
 
 	// Swaggerの初期化
 	config.SetupSwagger()

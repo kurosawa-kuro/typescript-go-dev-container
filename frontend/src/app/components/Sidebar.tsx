@@ -5,10 +5,8 @@ import { usePathname } from 'next/navigation';
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'About', href: '/about' },
   { name: 'Micropost', href: '/micro-post' },
-  { name: 'About', href: '/about' },
+  { name: 'Login', href: '/auth/login' },
 ];
 
 export function Sidebar() {

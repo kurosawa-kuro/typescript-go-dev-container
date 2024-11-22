@@ -24,30 +24,31 @@ export default function CreateMicropostButton() {
         credentials: 'include',
       });
 
-      // レスポンスのステータスとContent-Typeをチェック
-      const contentType = response.headers.get('content-type');
       if (!response.ok) {
-        if (contentType && contentType.includes('application/json')) {
+        if (response.status === 401) {
+          throw new Error('Please log in to create a post');
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Failed to create micropost');
         } else {
-          const textError = await response.text();
-          throw new Error(textError || `HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
       }
 
-      // 成功レスポンスの処理
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        console.log('Created micropost:', data);
-      }
-
-      // 投稿成功後の処理
+      const data = await response.json();
+      console.log('Created micropost:', data);
       router.refresh();
       setIsModalOpen(false);
     } catch (error) {
       console.error('Error creating micropost:', error);
       setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+      
+      if (error instanceof Error && error.message.includes('Please log in')) {
+        router.push('/login');
+      }
     } finally {
       setIsLoading(false);
     }

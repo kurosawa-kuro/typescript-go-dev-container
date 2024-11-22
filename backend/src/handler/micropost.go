@@ -30,6 +30,9 @@ func (h *MicropostHandler) Create(c *gin.Context) {
 		return
 	}
 
+	// ユーザーIDを設定
+	micropost.UserID = userID
+
 	if err := h.db.Create(&micropost).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

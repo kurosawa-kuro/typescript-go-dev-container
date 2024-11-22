@@ -10,6 +10,12 @@ import (
 	"gorm.io/gorm"
 )
 
+func Migrate(db *gorm.DB) error {
+	db.AutoMigrate(&model.User{})
+	db.AutoMigrate(&model.Micropost{})
+	return nil
+}
+
 // Seed データベースにシードデータを投入
 func Seed(db *gorm.DB) error {
 	// 既存のデータを削除（テーブル構造は保持）

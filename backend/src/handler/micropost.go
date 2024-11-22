@@ -43,7 +43,9 @@ func (h *MicropostHandler) Create(c *gin.Context) {
 
 func (h *MicropostHandler) FindAll(c *gin.Context) {
 	var microposts []model.Micropost
-	if err := h.db.Find(&microposts).Error; err != nil {
+
+	// created_at でDESC（降順）ソート
+	if err := h.db.Order("created_at DESC").Find(&microposts).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

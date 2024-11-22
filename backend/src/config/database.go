@@ -63,6 +63,7 @@ func SetupDBWithConfig(isTest bool) *gorm.DB {
 	fmt.Println("Successfully connected to database!")
 
 	// マイグレーション
+	db.AutoMigrate(&model.User{})
 	db.AutoMigrate(&model.Micropost{})
 
 	return db

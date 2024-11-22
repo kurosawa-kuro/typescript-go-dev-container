@@ -1,4 +1,4 @@
-.PHONY: up down rebuild logs ps clean help test-frontend test-frontend-watch test-backend exec-frontend exec-backend exec-db
+.PHONY: up down rebuild logs ps clean help test-frontend test-frontend-watch test-backend exec-frontend exec-backend exec-db db-seed db-clean db-reset
 
 # デフォルトのターゲット
 .DEFAULT_GOAL := help
@@ -7,7 +7,7 @@
 DC := docker-compose
 
 ###################
-# 基本コマンド
+# Docker基本コマンド
 ###################
 up: ## コンテナを起動
 	$(DC) up -d
@@ -21,59 +21,33 @@ ps: ## 実行中のコンテナを表示
 logs: ## コンテナのログを表示
 	$(DC) logs -f
 
-clean: ## コンテナ、ボリューム、ネットワークを削除
-	$(DC) down -v --rmi all --remove-orphans
+###################
+# データベース操作
+###################
+db-migrate: ## データベースのマイグレーションを実行
+	cd backend/src/cmd/migrate && go run main.go
+
+db-seed: ## データベースにシードデータを投入
+	cd backend/src/cmd/seed && go run main.go
+
+db-clean: ## データベースをクリーンアップ
+	$(DC) exec db psql -U postgres -d dev_db -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+
+db-reset: db-clean db-seed ## データベースをリセットしてシードデータを投入
 
 ###################
-# クリーンアップ関連
+# 開発環境操作
 ###################
-clean: ## コンテナ、ボリューム、ネットワークを削除
-	$(DC) down -v --rmi all --remove-orphans
+dev-frontend: ## フロントエンドの開発サーバーを起動
+	cd frontend && npm run dev
 
-clean-all: clean ## Dockerシステム全体のクリーンアップ（すべてのコンテナ、イメージ、ボリュームを削除）
-	docker system prune -a --volumes -f
+dev-backend: ## バックエンドの開発サーバーを起動（ホットリロード）
+	cd backend/src && air -c ../.air.toml
 
-clean-deep: ## 完全クリーンアップ（Dev Container環境を完全にリセット）
-	cd .devcontainer && \
-	$(DC) down -v && \
-	docker stop $$(docker ps -a -q) 2>/dev/null || true && \
-	docker rm $$(docker ps -a -q) 2>/dev/null || true && \
-	docker rmi $$(docker images -q) -f 2>/dev/null || true && \
-	docker volume rm $$(docker volume ls -q) 2>/dev/null || true && \
-	docker network prune -f && \
-	docker system prune -a --volumes -f && \
-	rm -rf ~/.vscode-server && \
-	rm -rf ~/.vscode-remote-containers
-
-reset: clean-deep ## 完全なリセット（すべてを削除して再ビルド）
-	$(DC) up --build -d
+dev: dev-backend dev-frontend ## 開発サーバーを起動（フロント＆バック）
 
 ###################
-# ビルド関連
-###################
-rebuild: down ## コンテナを再ビルドして起動
-	$(DC) up --build
-
-rebuild-frontend: down ## フロントエンドのコンテナを再ビルドして起動
-	$(DC) up --build frontend
-
-rebuild-backend: down ## バックエンドのコンテナを再ビルドして起動
-	$(DC) up --build backend
-
-###################
-# コンテナ接続
-###################
-exec-frontend: ## フロントエンドのコンテナに入る
-	$(DC) exec frontend sh
-
-exec-backend: ## バックエンドのコンテナに入る
-	$(DC) exec backend sh
-
-exec-db: ## DBのコンテナに入る
-	$(DC) exec db sh
-
-###################
-# テスト関連
+# テスト実行
 ###################
 test-frontend: ## フロントエンドのテストを実行
 	$(DC) exec frontend npm test
@@ -87,17 +61,55 @@ test-backend: ## バックエンドのテストを実行
 test-backend-watch: ## バックエンドのテストをウォッチモードで実行
 	cd backend/src && go test ./handler/... ./test/... -v -watch
 
-test: test-frontend test-backend
+test: test-frontend test-backend ## 全てのテストを実行
 
-# 開発用コマンド
 ###################
-dev-frontend: ## フロントエンドの開発サーバーを起動
-	cd frontend && npm run dev
+# コンテナ操作
+###################
+exec-frontend: ## フロントエンドのコンテナに入る
+	$(DC) exec frontend sh
 
-dev-backend: ## バックエンドの開発サーバーを起動（ホットリロード）
-	cd backend/src && air -c ../.air.toml
+exec-backend: ## バックエンドのコンテナに入る
+	$(DC) exec backend sh
 
-dev: dev-backend dev-frontend 
+exec-db: ## DBのコンテナに入る
+	$(DC) exec db sh
+
+###################
+# ビルド操作
+###################
+rebuild: down ## コンテナを再ビルドして起動
+	$(DC) up --build
+
+rebuild-frontend: down ## フロントエンドのコンテナを再ビルドして起動
+	$(DC) up --build frontend
+
+rebuild-backend: down ## バックエンドのコンテナを再ビルドして起動
+	$(DC) up --build backend
+
+###################
+# クリーンアップ操作
+###################
+clean: ## コンテナ、ボリューム、ネットワークを削除
+	$(DC) down -v --rmi all --remove-orphans
+
+clean-all: clean ## Dockerシステム全体のクリーンアップ
+	docker system prune -a --volumes -f
+
+clean-deep: ## Dev Container環境を完全にリセット
+	cd .devcontainer && \
+	$(DC) down -v && \
+	docker stop $$(docker ps -a -q) 2>/dev/null || true && \
+	docker rm $$(docker ps -a -q) 2>/dev/null || true && \
+	docker rmi $$(docker images -q) -f 2>/dev/null || true && \
+	docker volume rm $$(docker volume ls -q) 2>/dev/null || true && \
+	docker network prune -f && \
+	docker system prune -a --volumes -f && \
+	rm -rf ~/.vscode-server && \
+	rm -rf ~/.vscode-remote-containers
+
+reset: clean-deep ## 完全なリセット（すべてを削除して再ビルド）
+	$(DC) up --build -d
 
 ###################
 # ヘルプ

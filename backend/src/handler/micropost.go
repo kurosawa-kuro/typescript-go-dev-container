@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
+	"backend/src/middleware"
 	"backend/src/model"
 
 	"github.com/gin-gonic/gin"
@@ -17,16 +19,11 @@ func NewMicropostHandler(db *gorm.DB) *MicropostHandler {
 	return &MicropostHandler{db: db}
 }
 
-// CreateMicropost godoc
-// @Summary      Create new micropost
-// @Description  creates a new micropost
-// @Tags         microposts
-// @Accept       json
-// @Produce      json
-// @Param        micropost  body      model.Micropost  true  "Micropost Info"
-// @Success      201        {object}  model.Micropost
-// @Router       /microposts [post]
 func (h *MicropostHandler) Create(c *gin.Context) {
+	// GetAuthUser 認証済みユーザー情報を取得
+	userID, _, _ := middleware.GetAuthUser(c)
+	fmt.Println("userID:", userID)
+
 	var micropost model.Micropost
 	if err := c.ShouldBindJSON(&micropost); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -41,14 +38,6 @@ func (h *MicropostHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, micropost)
 }
 
-// FindAll godoc
-// @Summary      List microposts
-// @Description  get all microposts
-// @Tags         microposts
-// @Accept       json
-// @Produce      json
-// @Success      200  {array}   model.Micropost
-// @Router       /microposts [get]
 func (h *MicropostHandler) FindAll(c *gin.Context) {
 	var microposts []model.Micropost
 	if err := h.db.Find(&microposts).Error; err != nil {

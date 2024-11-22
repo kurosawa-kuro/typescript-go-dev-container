@@ -1,27 +1,122 @@
 @baseUrl = http://localhost:8000
+@contentType = application/json
 
 ###################
-# Health Check
+# Health Check API
 ###################
-### Ping Test
-GET {{baseUrl}}/ping
-Content-Type: application/json
 
-### Ping DB
-GET {{baseUrl}}/ping-db
-Content-Type: application/json
+### Service Health Check
+# Returns service health status
+GET {{baseUrl}}/api/health
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "message": "Service is healthy"
+# }
+
+### Database Connection Check
+# Verifies database connectivity
+GET {{baseUrl}}/api/health/db
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "message": "DB connected"
+# }
+
+### Development Database Check
+# Verifies connection to development database
+GET {{baseUrl}}/api/health/db/dev
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "message": "Connected to dev_db database",
+#   "database": "dev_db"
+# }
+
+### Test Database Check
+# Verifies connection to test database
+GET {{baseUrl}}/api/health/db/test
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "message": "Connected to test_db database",
+#   "database": "test_db"
+# }
 
 ###################
 # Microposts API
 ###################
-### Create Micropost
-POST {{baseUrl}}/microposts
-Content-Type: application/json
+
+### Create New Micropost
+# Creates a new micropost with the given title
+POST {{baseUrl}}/api/microposts
+Content-Type: {{contentType}}
 
 {
     "title": "test"
 }
 
-### Find All Microposts
-GET {{baseUrl}}/microposts
-Content-Type: application/json
+# Expected Response: 201
+# {
+#   "id": 1,
+#   "title": "test"
+# }
+
+### List All Microposts
+# Retrieves all microposts
+GET {{baseUrl}}/api/microposts
+Content-Type: {{contentType}}
+
+# Expected Response: 200
+# {
+#   "microposts": [
+#     {
+#       "id": 1,
+#       "title": "test"
+#     }
+#   ]
+# }
+
+###################
+# Auth API
+###################
+
+### Register New User
+# Registers a new user with the given email and password
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+    "email": "user1@example.com",
+    "password": "password"
+}   
+
+# Expected Response: 201
+# {
+#   "id": 1,
+#   "email": "test@example.com"
+# }     
+
+### Login
+# Logs in a user with the given email and password
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "user1@example.com",
+    "password": "password"
+}
+
+### Logout
+# Logs out a user
+POST {{baseUrl}}/api/auth/logout
+Content-Type: {{contentType}}       
+
+### User
+# Retrieves the current user's profile information
+GET {{baseUrl}}/api/auth/user
+Content-Type: {{contentType}}

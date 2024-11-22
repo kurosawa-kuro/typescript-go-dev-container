@@ -51,19 +51,27 @@ Content-Type: {{contentType}}
 # Microposts API
 ###################
 
-### Create New Micropost
-# Creates a new micropost with the given title
+### Create New Micropost (with image)
+# Creates a new micropost with the given title and image
 POST {{baseUrl}}/api/microposts
-Content-Type: {{contentType}}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
 
-{
-    "title": "test"
-}
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+test title
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
 
 # Expected Response: 201
 # {
 #   "id": 1,
-#   "title": "test"
+#   "title": "test title",
+#   "image_path": "uploads/..."
 # }
 
 ### List All Microposts

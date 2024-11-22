@@ -3,6 +3,9 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
 
 	"backend/src/middleware"
 	"backend/src/model"
@@ -20,18 +23,42 @@ func NewMicropostHandler(db *gorm.DB) *MicropostHandler {
 }
 
 func (h *MicropostHandler) Create(c *gin.Context) {
-	// GetAuthUser 認証済みユーザー情報を取得
 	userID, _, _ := middleware.GetAuthUser(c)
-	fmt.Println("userID:", userID)
 
-	var micropost model.Micropost
-	if err := c.ShouldBindJSON(&micropost); err != nil {
+	// フォームデータを取得
+	title := c.PostForm("title")
+	file, err := c.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// ユーザーIDを設定
-	micropost.UserID = userID
+	var imagePath string
+	if file != nil {
+		// ファイル名をユニークにする
+		filename := fmt.Sprintf("%d_%s", time.Now().UnixNano(), file.Filename)
+		// 保存先のパスを設定
+		imagePath = filepath.Join("uploads", filename)
+
+		// uploadsディレクトリが存在しない場合は作成
+		if err := os.MkdirAll("uploads", 0755); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		// ファイルを保存
+		if err := c.SaveUploadedFile(file, imagePath); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// Micropostを作成
+	micropost := model.Micropost{
+		UserID:    userID,
+		Title:     title,
+		ImagePath: imagePath,
+	}
 
 	if err := h.db.Create(&micropost).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -24,6 +24,9 @@ logs: ## コンテナのログを表示
 ###################
 # データベース操作
 ###################
+db-migrate: ## データベースのマイグレーションを実行
+	cd backend/src/cmd/migrate && go run main.go
+
 db-seed: ## データベースにシードデータを投入
 	cd backend/src/cmd/seed && go run main.go
 

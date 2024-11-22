@@ -12,28 +12,25 @@ import (
 
 // Seed データベースにシードデータを投入
 func Seed(db *gorm.DB) error {
-	// 既存のデータを削除
+	// 既存のデータを削除（テーブル構造は保持）
 	if err := cleanDatabase(db); err != nil {
 		return err
 	}
 
 	// 管理者ユーザーの作成
-	_, err := createAdminUser(db)
+	admin, err := createAdminUser(db)
 	if err != nil {
 		return err
 	}
 
 	// テストユーザーの作成
-	_, err = createTestUsers(db)
+	users, err := createTestUsers(db)
 	if err != nil {
 		return err
 	}
 
-	// // マイクロポストの作成
-	// if err := createMicroposts(db, append(users, admin)); err != nil {
-	// 	return err
-	// }
-
+	log.Printf("Created admin user: %s", admin.Email)
+	log.Printf("Created %d test users", len(users))
 	log.Println("Seed data has been successfully loaded")
 	return nil
 }

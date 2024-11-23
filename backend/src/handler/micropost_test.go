@@ -48,7 +48,7 @@ func setupTestUserWithAuth(t *testing.T, db *gorm.DB) (model.User, string) {
 	return testUser, token
 }
 
-func setupTestRouter(t *testing.T, db *gorm.DB, method, path string, handler gin.HandlerFunc, testUser *model.User, token string) *gin.Engine {
+func setupTestRouter(method, path string, handler gin.HandlerFunc, testUser *model.User, token string) *gin.Engine {
 	router := gin.New()
 
 	if testUser != nil && token != "" {
@@ -79,7 +79,7 @@ func TestMicropostHandler_Create(t *testing.T) {
 	// 認証済みユーザーをセットアップ
 	testUser, token := setupTestUserWithAuth(t, db)
 	handler := NewMicropostHandler(db)
-	router := setupTestRouter(t, db, "POST", "/microposts", handler.Create, &testUser, token)
+	router := setupTestRouter("POST", "/microposts", handler.Create, &testUser, token)
 
 	// マルチパートフォームデータの作成
 	body := &bytes.Buffer{}
@@ -125,7 +125,7 @@ func TestMicropostHandler_FindAll(t *testing.T) {
 	}
 
 	handler := NewMicropostHandler(db)
-	router := setupTestRouter(t, db, "GET", "/microposts", handler.FindAll, nil, "")
+	router := setupTestRouter("GET", "/microposts", handler.FindAll, nil, "")
 
 	// Create request
 	w := httptest.NewRecorder()

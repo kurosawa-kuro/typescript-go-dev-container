@@ -1,0 +1,121 @@
+volumes:
+  postgres-data:
+  pgadmin-data:
+  next-node-modules:
+  postgres-test-data:
+
+services:
+  backend:
+    build: 
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+    env_file:
+        - .env
+    volumes:
+      - .:/workspaces/typescript-go-dev-container:cached
+    working_dir: /workspaces/typescript-go-dev-container/backend/src
+    networks:
+      - dev-network
+    ports:
+      - "8000:8000"
+    command: air -c /workspaces/typescript-go-dev-container/backend/.air.toml
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - .:/workspaces/typescript-go-dev-container:cached
+      - next-node-modules:/workspaces/typescript-go-dev-container/frontend/node_modules
+    networks:
+      - dev-network
+    command: npm run install && npm run dev
+
+  db:
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/var/lib/postgresql/pg_hba.conf
+    env_file:
+      - .env
+    networks:
+      - dev-network
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command:
+      - "postgres"
+      - "-c"
+      - "listen_addresses=*"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "password_encryption=md5"
+      - "-c"
+      - "hba_file=/var/lib/postgresql/pg_hba.conf"
+
+  test-db:
+    container_name: test-postgres-db
+    image: postgres:latest
+    restart: unless-stopped
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - dev-network
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    command:
+      - "postgres"
+      - "-c"
+      - "listen_addresses=*"
+      - "-c"
+      - "log_connections=on"
+      - "-c"
+      - "password_encryption=md5"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      - ./servers.json:/pgadmin4/servers.json
+    depends_on:
+      - db
+    networks:
+      - dev-network
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
+
+networks:
+  dev-network:
+    driver: bridge

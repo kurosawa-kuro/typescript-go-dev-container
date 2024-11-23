@@ -16,7 +16,6 @@ services:
     networks:
       - dev-network
     command: sleep infinity
-    # command: air -c .air.toml
 
   frontend:
     build:
@@ -30,7 +29,6 @@ services:
     networks:
       - dev-network
     command: sleep infinity
-    # command: npm run install && npm run dev
 
   db:
     image: postgres:latest

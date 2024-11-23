@@ -6,3 +6,6 @@ RUN go install github.com/cosmtrek/air@v1.49.0
 # Create Go module cache directory and set permissions
 RUN mkdir -p /go/{pkg,src,bin} && \
     chmod -R 777 /go
+
+# Set working directory
+WORKDIR /workspaces/backend

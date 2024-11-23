@@ -48,6 +48,47 @@ Content-Type: {{contentType}}
 # }
 
 ###################
+# Auth API
+###################
+
+### Register New User
+# Registers a new user with the given email and password
+POST {{baseUrl}}/api/auth/register
+Content-Type: {{contentType}}
+
+{
+    "email": "user1@example.com",
+    "password": "password"
+}   
+
+# Expected Response: 201
+# {
+#   "id": 1,
+#   "email": "test@example.com"
+# }     
+
+### Login
+# Logs in a user with the given email and password
+POST {{baseUrl}}/api/auth/login
+Content-Type: {{contentType}}
+
+{
+    "email": "user1@example.com",
+    "password": "password"
+}
+
+### Logout
+# Logs out a user
+POST {{baseUrl}}/api/auth/logout
+Content-Type: {{contentType}}       
+
+### User
+# Retrieves the current user's profile information
+GET {{baseUrl}}/api/auth/user
+Content-Type: {{contentType}}
+
+
+###################
 # Microposts API
 ###################
 
@@ -89,42 +130,3 @@ Content-Type: {{contentType}}
 #   ]
 # }
 
-###################
-# Auth API
-###################
-
-### Register New User
-# Registers a new user with the given email and password
-POST {{baseUrl}}/api/auth/register
-Content-Type: {{contentType}}
-
-{
-    "email": "user1@example.com",
-    "password": "password"
-}   
-
-# Expected Response: 201
-# {
-#   "id": 1,
-#   "email": "test@example.com"
-# }     
-
-### Login
-# Logs in a user with the given email and password
-POST {{baseUrl}}/api/auth/login
-Content-Type: {{contentType}}
-
-{
-    "email": "user1@example.com",
-    "password": "password"
-}
-
-### Logout
-# Logs out a user
-POST {{baseUrl}}/api/auth/logout
-Content-Type: {{contentType}}       
-
-### User
-# Retrieves the current user's profile information
-GET {{baseUrl}}/api/auth/user
-Content-Type: {{contentType}}

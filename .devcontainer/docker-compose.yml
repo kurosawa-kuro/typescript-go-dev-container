@@ -37,7 +37,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
     env_file:
       - .env
     networks:

@@ -3,35 +3,84 @@ package handler
 import (
 	"backend/src/model"
 	"backend/src/test"
+	"backend/src/util"
 	"bytes"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
+
+func init() {
+	gin.SetMode(gin.ReleaseMode)
+}
+
+func setupTestUserWithAuth(t *testing.T, db *gorm.DB) (model.User, string) {
+	// 既存のユーザーを削除（クリーンアップ）
+	db.Exec("DELETE FROM users WHERE email = ?", "test@example.com")
+
+	// テストユーザーを作成
+	password := "password123"
+	hashedPassword, err := util.HashPassword(password)
+	assert.NoError(t, err)
+
+	testUser := model.User{
+		Email:    "test@example.com",
+		Password: hashedPassword,
+		Role:     "user",
+	}
+	err = db.Create(&testUser).Error
+	assert.NoError(t, err)
+
+	// JWTトークンを生成
+	token, err := util.GenerateToken(testUser.ID, testUser.Email, testUser.Role)
+	assert.NoError(t, err)
+
+	// トークンをDBに保存
+	err = db.Model(&testUser).Update("token", token).Error
+	assert.NoError(t, err)
+
+	return testUser, token
+}
 
 func TestMicropostHandler_Create(t *testing.T) {
 	// Setup
 	db := test.SetupTestDB(t)
 	defer test.CleanupTest(t, db)
 
+	// 認証済みユーザーをセットアップ
+	testUser, token := setupTestUserWithAuth(t, db)
+
 	handler := NewMicropostHandler(db)
 	router := gin.New()
-	router.POST("/microposts", handler.Create)
 
-	// Test data
-	micropost := model.Micropost{
-		Title: "Test Post",
-	}
-	jsonData, _ := json.Marshal(micropost)
+	// モックの認証ミドルウェアを追加
+	router.POST("/microposts", func(c *gin.Context) {
+		c.Set("user_id", testUser.ID)
+		c.Set("email", testUser.Email)
+		c.Set("role", testUser.Role)
+		c.Request.AddCookie(&http.Cookie{
+			Name:  "token",
+			Value: token,
+		})
+		c.Next()
+	}, handler.Create)
+
+	// マルチパートフォームデータの作成
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	_ = writer.WriteField("title", "Test Post")
+	writer.Close()
 
 	// Create request
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("POST", "/microposts", bytes.NewBuffer(jsonData))
-	req.Header.Set("Content-Type", "application/json")
+	req, _ := http.NewRequest("POST", "/microposts", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 	router.ServeHTTP(w, req)
 
 	// Assertions
@@ -40,8 +89,9 @@ func TestMicropostHandler_Create(t *testing.T) {
 	var response model.Micropost
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
-	assert.Equal(t, micropost.Title, response.Title)
+	assert.Equal(t, "Test Post", response.Title)
 	assert.NotZero(t, response.ID)
+	assert.Equal(t, testUser.ID, response.UserID)
 }
 
 func TestMicropostHandler_FindAll(t *testing.T) {
@@ -49,18 +99,24 @@ func TestMicropostHandler_FindAll(t *testing.T) {
 	db := test.SetupTestDB(t)
 	defer test.CleanupTest(t, db)
 
+	// 認証済みユーザーをセットアップ
+	testUser, _ := setupTestUserWithAuth(t, db)
+
+	// Create test data with valid UserID
+	testPosts := []model.Micropost{
+		{Title: "Test Post 1", UserID: testUser.ID},
+		{Title: "Test Post 2", UserID: testUser.ID},
+	}
+
+	// マイクロポストを作成し、エラー処理を追加
+	for _, post := range testPosts {
+		err := db.Create(&post).Error
+		assert.NoError(t, err)
+	}
+
 	handler := NewMicropostHandler(db)
 	router := gin.New()
 	router.GET("/microposts", handler.FindAll)
-
-	// Create test data
-	testPosts := []model.Micropost{
-		{Title: "Test Post 1"},
-		{Title: "Test Post 2"},
-	}
-	for _, post := range testPosts {
-		db.Create(&post)
-	}
 
 	// Create request
 	w := httptest.NewRecorder()
@@ -74,6 +130,10 @@ func TestMicropostHandler_FindAll(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.Len(t, response, 2)
-	assert.Equal(t, testPosts[0].Title, response[0].Title)
-	assert.Equal(t, testPosts[1].Title, response[1].Title)
+
+	// レスポンスの長さを確認してからアクセス
+	if assert.Len(t, response, 2) {
+		assert.Equal(t, testPosts[1].Title, response[0].Title)
+		assert.Equal(t, testPosts[0].Title, response[1].Title)
+	}
 }

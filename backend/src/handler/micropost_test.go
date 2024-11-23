@@ -48,6 +48,29 @@ func setupTestUserWithAuth(t *testing.T, db *gorm.DB) (model.User, string) {
 	return testUser, token
 }
 
+func setupTestRouter(t *testing.T, db *gorm.DB, method, path string, handler gin.HandlerFunc, testUser *model.User, token string) *gin.Engine {
+	router := gin.New()
+
+	if testUser != nil && token != "" {
+		// 認証が必要な場合、モックミドルウェアを追加
+		router.Handle(method, path, func(c *gin.Context) {
+			c.Set("user_id", testUser.ID)
+			c.Set("email", testUser.Email)
+			c.Set("role", testUser.Role)
+			c.Request.AddCookie(&http.Cookie{
+				Name:  "token",
+				Value: token,
+			})
+			c.Next()
+		}, handler)
+	} else {
+		// 認証が不要な場合、直接ハンドラーを設定
+		router.Handle(method, path, handler)
+	}
+
+	return router
+}
+
 func TestMicropostHandler_Create(t *testing.T) {
 	// Setup
 	db := test.SetupTestDB(t)
@@ -55,21 +78,8 @@ func TestMicropostHandler_Create(t *testing.T) {
 
 	// 認証済みユーザーをセットアップ
 	testUser, token := setupTestUserWithAuth(t, db)
-
 	handler := NewMicropostHandler(db)
-	router := gin.New()
-
-	// モックの認証ミドルウェアを追加
-	router.POST("/microposts", func(c *gin.Context) {
-		c.Set("user_id", testUser.ID)
-		c.Set("email", testUser.Email)
-		c.Set("role", testUser.Role)
-		c.Request.AddCookie(&http.Cookie{
-			Name:  "token",
-			Value: token,
-		})
-		c.Next()
-	}, handler.Create)
+	router := setupTestRouter(t, db, "POST", "/microposts", handler.Create, &testUser, token)
 
 	// マルチパートフォームデータの作成
 	body := &bytes.Buffer{}
@@ -115,8 +125,7 @@ func TestMicropostHandler_FindAll(t *testing.T) {
 	}
 
 	handler := NewMicropostHandler(db)
-	router := gin.New()
-	router.GET("/microposts", handler.FindAll)
+	router := setupTestRouter(t, db, "GET", "/microposts", handler.FindAll, nil, "")
 
 	// Create request
 	w := httptest.NewRecorder()

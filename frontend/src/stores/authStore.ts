@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         try {
-          await fetch('http://localhost:8000/api/auth/logout', {
+          await fetch('http://backend:8000/api/auth/logout', {
             method: 'POST',
             credentials: 'include',
           });

@@ -1,4 +1,4 @@
-FROM golang:1.21.5-bookworm
+FROM golang:1.22.0-bookworm
 
 # Install air for Go hot reload
 RUN go install github.com/cosmtrek/air@v1.49.0

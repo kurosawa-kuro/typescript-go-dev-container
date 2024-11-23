@@ -29,12 +29,21 @@ services:
       dockerfile: ./docker/frontend/Dockerfile
     env_file:
       - .env
+    environment:
+      NEXT_PUBLIC_API_URL: "http://backend:8000"
+      WATCHPACK_POLLING: "true"
     volumes:
       - .:/workspaces/typescript-go-dev-container:cached
-      - next-node-modules:/workspaces/typescript-go-dev-container/frontend/node_modules
+      - next-node-modules:/workspaces/typescript-go-dev-container/frontend/node_modules:delegated
+    working_dir: /workspaces/typescript-go-dev-container/frontend
     networks:
       - dev-network
-    command: npm run install && npm run dev
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- -H 0.0.0.0"
+    user: node
+    depends_on:
+      - backend
 
   db:
     image: postgres:latest

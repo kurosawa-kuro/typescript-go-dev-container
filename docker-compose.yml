@@ -12,10 +12,16 @@ services:
     env_file:
         - .env
     volumes:
-      - ../..:/workspaces:cached
+      - .:/workspaces/typescript-go-dev-container:cached
+    working_dir: /workspaces/typescript-go-dev-container/backend/src
     networks:
       - dev-network
-    command: sleep infinity
+    ports:
+      - "8000:8000"
+    command: air -c /workspaces/typescript-go-dev-container/backend/.air.toml
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
@@ -23,19 +29,28 @@ services:
       dockerfile: ./docker/frontend/Dockerfile
     env_file:
       - .env
+    environment:
+      NEXT_PUBLIC_API_URL: "http://backend:8000"
+      WATCHPACK_POLLING: "true"
     volumes:
-      - ../..:/workspaces:cached
-      - next-node-modules:/workspaces/frontend/node_modules
+      - .:/workspaces/typescript-go-dev-container:cached
+      - next-node-modules:/workspaces/typescript-go-dev-container/frontend/node_modules:delegated
+    working_dir: /workspaces/typescript-go-dev-container/frontend
     networks:
       - dev-network
-    command: sleep infinity
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- -H 0.0.0.0"
+    user: node
+    depends_on:
+      - backend
 
   db:
     image: postgres:latest
     restart: unless-stopped
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./docker/postgres/pg_hba.conf:/var/lib/postgresql/pg_hba.conf
     env_file:
       - .env
     networks:
@@ -47,6 +62,12 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     command:
       - "postgres"
       - "-c"
@@ -56,7 +77,7 @@ services:
       - "-c"
       - "password_encryption=md5"
       - "-c"
-      - "hba_file=/etc/postgresql/pg_hba.conf"
+      - "hba_file=/var/lib/postgresql/pg_hba.conf"
 
   test-db:
     container_name: test-postgres-db
@@ -64,7 +85,7 @@ services:
     restart: unless-stopped
     volumes:
       - postgres-test-data:/var/lib/postgresql/data
-      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./docker/postgres/pg_hba.conf:/var/lib/postgresql/pg_hba.conf
     networks:
       - dev-network
     ports:
@@ -83,7 +104,7 @@ services:
       - "-c"
       - "password_encryption=md5"
       - "-c"
-      - "hba_file=/etc/postgresql/pg_hba.conf"
+      - "hba_file=/var/lib/postgresql/pg_hba.conf"
 
   pgadmin:
     image: dpage/pgadmin4

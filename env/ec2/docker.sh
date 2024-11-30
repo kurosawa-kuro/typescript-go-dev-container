@@ -22,6 +22,6 @@ docker --version
 docker compose version
 
 # 注意: 変更を反映するためにシステムの再起動かログアウト/ログインが必要
-sudo reboot
+# sudo reboot
 # または
 exit  # 再度SSHで接続

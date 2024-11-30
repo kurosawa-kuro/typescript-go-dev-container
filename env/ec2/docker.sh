@@ -11,11 +11,19 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker ec2-user
 
+# Add your user to the docker group
+sudo usermod -aG docker $USER
+
+# Apply the new group membership
+newgrp docker
+
 # Docker Composeのインストール
 # バージョン2.xの場合
 sudo mkdir -p /usr/local/lib/docker/cli-plugins/
 sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+
 
 # インストールの確認
 docker --version

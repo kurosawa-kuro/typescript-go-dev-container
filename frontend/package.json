@@ -16,7 +16,8 @@
     "@types/testing-library__jest-dom": "^6.0.0",
     "next": "^14.2.18",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.2",
